@@ -1,0 +1,21 @@
+$install_kubernetes = <<SCRIPT
+	um update -y
+	um install -y yum-utils device-mapper-persistent-data lvm2
+	um-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+	um install -y docker-ce
+	ystemctl start docker
+	url -LO https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl
+	hmod +x ./kubectl
+	udo mv ./kubectl /usr/local/bin/kubectl
+	url -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64 \ && chmod +x minikube
+	udo mkdir -p /usr/local/bin/
+	udo install minikube /usr/local/bin/
+SCRIPT
+Vagrant.configure("2") do |config|
+config.vm.provider :virtualbox do |vb|
+	vb.customize ["modifyvm", :id, "--memory", "4098", "--cpus", "2"]
+end
+	config.vm.box = "centos/7"
+	config.vm.hostname = "kubernetes"
+	config.vm.provision "shell", inline: $install_kubernetes
+end
